@@ -232,14 +232,11 @@ class MultiHeadAttentionBlock(keras.layers.Layer):
         return mask
 
     def call(self, inputs: tuple, training=None):
-        x, mems = inputs[0], inputs[1]
-        
-        if mems is not None:
-            mems = tf.concat((mems, x),1)
+        x, y = inputs[0], inputs[1]
         
         if self.use_layernorm and self.pre_layernorm:
-            return self.call_pre_layernorm(x, mems, training)
-        return self.call_post_layernorm(x, mems, training)
+            return self.call_pre_layernorm(x, y, training)
+        return self.call_post_layernorm(x, y, training)
 
 
     def get_config(self):
@@ -260,9 +257,17 @@ class MultiHeadAttentionBlock(keras.layers.Layer):
 
 @CustomLayer
 class SetAttentionBlock(MultiHeadAttentionBlock):
-    #x, mems
     def call(self, inputs, training=None):
-        return super().call(inputs, training=training)
+        
+        x = inputs[0]
+        mems = inputs[1]
+        
+        if mems is not None:
+            mems = tf.concat((mems, x),1)
+        else:
+            mems = x
+            
+        return super().call([x, mems], training=training)
 
 
 @CustomLayer
