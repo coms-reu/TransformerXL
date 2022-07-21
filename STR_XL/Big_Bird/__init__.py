@@ -375,8 +375,7 @@ class BigBirdMasks(tf.keras.layers.Layer):
         encoder_from_mask = tf.reshape(mask, (batch_size, 1, seq_length, 1))
         encoder_to_mask = tf.reshape(mask, (batch_size, 1, 1, seq_length))
 
-        band_mask = create_band_mask_from_inputs(blocked_encoder_mask,
-                                                                                         blocked_encoder_mask)
+        band_mask = create_band_mask_from_inputs(blocked_encoder_mask, blocked_encoder_mask)
         return [band_mask, encoder_from_mask, encoder_to_mask, blocked_encoder_mask]
 
 
@@ -413,8 +412,8 @@ class BigBirdAttention(tf.keras.layers.MultiHeadAttention):
         self.rand_attn = tf.constant(rand_attn, dtype=tf.int32)
 
     def _compute_attention(self, query, key, value, attention_mask=None):
-        # (band_mask, encoder_from_mask, encoder_to_mask,
-        #  blocked_encoder_mask) = attention_mask
+        (band_mask, encoder_from_mask, encoder_to_mask,
+         blocked_encoder_mask) = attention_mask
         query_shape = tf.shape(query)
         from_seq_length = query_shape[1]
         to_seq_length = tf.shape(key)[1]
