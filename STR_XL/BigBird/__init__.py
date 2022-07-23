@@ -1,19 +1,3 @@
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Keras-based bigbird attention layer."""
-
 import numpy as np
 import tensorflow as tf
 
@@ -39,20 +23,7 @@ def bigbird_block_rand_mask(from_seq_length,
                                                         to_block_size,
                                                         num_rand_blocks,
                                                         last_idx=-1):
-    """Create adjacency list of random attention.
-
-    Args:
-        from_seq_length: int. length of from sequence.
-        to_seq_length: int. length of to sequence.
-        from_block_size: int. size of block in from sequence.
-        to_block_size: int. size of block in to sequence.
-        num_rand_blocks: int. Number of random chunks per row.
-        last_idx: if -1 then num_rand_blocks blocks chosen anywhere in to sequence,
-            if positive then num_rand_blocks blocks choosen only upto last_idx.
-
-    Returns:
-        adjacency list of size from_seq_length//from_block_size-2 by num_rand_blocks
-    """
+  
     assert from_seq_length//from_block_size == to_seq_length//to_block_size, \
             "Error the number of blocks needs to be same!"
 
@@ -92,26 +63,7 @@ def bigbird_block_rand_mask(from_seq_length,
 def create_rand_mask_from_inputs(from_blocked_mask, to_blocked_mask, rand_attn,
                                                                  num_attention_heads, num_rand_blocks,
                                                                  batch_size, from_seq_length, from_block_size):
-    """Create 3D attention mask from a 2D tensor mask.
-
-    Args:
-        from_blocked_mask: 2D Tensor of shape [batch_size,
-            from_seq_length//from_block_size, from_block_size].
-        to_blocked_mask: int32 Tensor of shape [batch_size,
-            to_seq_length//to_block_size, to_block_size].
-        rand_attn: [batch_size, num_attention_heads,
-            from_seq_length//from_block_size-2, num_rand_blocks]
-        num_attention_heads: int. Number of attention heads.
-        num_rand_blocks: int. Number of random chunks per row.
-        batch_size: int. Batch size for computation.
-        from_seq_length: int. length of from sequence.
-        from_block_size: int. size of block in from sequence.
-
-    Returns:
-        float Tensor of shape [batch_size, num_attention_heads,
-                                                     from_seq_length//from_block_size-2,
-                                                     from_block_size, num_rand_blocks*to_block_size].
-    """
+   
     num_windows = from_seq_length // from_block_size - 2
     rand_mask = tf.reshape(
             tf.gather(to_blocked_mask, rand_attn, batch_dims=1), [
@@ -128,52 +80,7 @@ def bigbird_block_sparse_attention(
         from_blocked_mask, to_blocked_mask, rand_attn, num_attention_heads,
         num_rand_blocks, size_per_head, batch_size, from_seq_length, to_seq_length,
         from_block_size, to_block_size):
-    """BigBird attention sparse calculation using blocks in linear time.
-
-    Assumes from_seq_length//from_block_size == to_seq_length//to_block_size.
-
-
-    Args:
-        query_layer: float Tensor of shape [batch_size, num_attention_heads,
-            from_seq_length, size_per_head]
-        key_layer: float Tensor of shape [batch_size, num_attention_heads,
-            to_seq_length, size_per_head]
-        value_layer: float Tensor of shape [batch_size, num_attention_heads,
-            to_seq_length, size_per_head]
-        band_mask: (optional) int32 Tensor of shape [batch_size, 1,
-            from_seq_length//from_block_size-4, from_block_size, 3*to_block_size]. The
-            values should be 1 or 0. The attention scores will effectively be set to
-            -infinity for any positions in the mask that are 0, and will be unchanged
-            for positions that are 1.
-        from_mask: (optional) int32 Tensor of shape [batch_size, 1, from_seq_length,
-            1]. The values should be 1 or 0. The attention scores will effectively be
-            set to -infinity for any positions in the mask that are 0, and will be
-            unchanged for positions that are 1.
-        to_mask: (optional) int32 Tensor of shape [batch_size, 1, 1, to_seq_length].
-            The values should be 1 or 0. The attention scores will effectively be set
-            to -infinity for any positions in the mask that are 0, and will be
-            unchanged for positions that are 1.
-        from_blocked_mask: (optional) int32 Tensor of shape [batch_size,
-            from_seq_length//from_block_size, from_block_size]. Same as from_mask,
-            just reshaped.
-        to_blocked_mask: (optional) int32 Tensor of shape [batch_size,
-            to_seq_length//to_block_size, to_block_size]. Same as to_mask, just
-            reshaped.
-        rand_attn: [batch_size, num_attention_heads,
-            from_seq_length//from_block_size-2, num_rand_blocks]
-        num_attention_heads: int. Number of attention heads.
-        num_rand_blocks: int. Number of random chunks per row.
-        size_per_head: int. Size of each attention head.
-        batch_size: int. Batch size for computation.
-        from_seq_length: int. length of from sequence.
-        to_seq_length: int. length of to sequence.
-        from_block_size: int. size of block in from sequence.
-        to_block_size: int. size of block in to sequence.
-
-    Returns:
-        float Tensor of shape [batch_size, from_seq_length, num_attention_heads,
-            size_per_head].
-    """
+   
     rand_attn = tf.expand_dims(rand_attn, 0)
     rand_attn = tf.repeat(rand_attn, batch_size, 0)
 
@@ -224,27 +131,23 @@ def bigbird_block_sparse_attention(
 
     second_key_mat = tf.concat([
             blocked_key_matrix[:, :, 0], blocked_key_matrix[:, :, 1],
-            blocked_key_matrix[:, :, 2], blocked_key_matrix[:, :,
-                                                                                                            -1], gathered_key[:, :, 0]
+            blocked_key_matrix[:, :, 2], blocked_key_matrix[:, :, -1], gathered_key[:, :, 0]
     ], 2)    # [b, h, (4+r)*wn, -1]
     second_value_mat = tf.concat([
             blocked_value_matrix[:, :, 0], blocked_value_matrix[:, :, 1],
             blocked_value_matrix[:, :, 2], blocked_value_matrix[:, :, -1],
             gathered_value[:, :, 0]
     ], 2)    # [b, h, (4+r)*wn, -1]
-    second_product = tf.einsum(
-            "BHQD,BHKD->BHQK", blocked_query_matrix[:, :, 1], second_key_mat
+    second_product = tf.einsum("BHQD,BHKD->BHQK", blocked_query_matrix[:, :, 1], second_key_mat
     )    # [b, h, wm, -1] x [b, h, (4+r)*wn, -1] ==> [b, h, wm, (4+r)*wn]
     second_seq_pad = tf.concat([
             to_mask[:, :, :, :3 * wn], to_mask[:, :, :, -wn:],
             tf.ones([b, 1, 1, r * wn], dtype=dtype)
     ], 3)
-    second_rand_pad = tf.concat([
-            tf.ones([b, h, wm, 4 * wn], dtype=dtype), rand_mask[:, :, 0]
+    second_rand_pad = tf.concat([tf.ones([b, h, wm, 4 * wn], dtype=dtype), rand_mask[:, :, 0]
     ], 3)
     second_product = tf.multiply(second_product, 1.0 / np.sqrt(d))
-    second_product += (1.0 -
-                                         tf.minimum(second_seq_pad, second_rand_pad)) * -10000.0
+    second_product += (1.0 - tf.minimum(second_seq_pad, second_rand_pad)) * -10000.0
     second_attn_weights = tf.nn.softmax(second_product)    # [b , h, wm, (4+r)*wn]
     second_context_layer = tf.einsum(
             "BHQK,BHKD->BHQD", second_attn_weights, second_value_mat
@@ -267,8 +170,7 @@ def bigbird_block_sparse_attention(
     inner_band_product = tf.multiply(inner_band_product, 1.0 / np.sqrt(d))
     rand_band_product = tf.einsum(
             "BHLQD,BHLKD->BHLQK", middle_query_matrix,
-            gathered_key[:, :,
-                                     1:-1])    # [b, h, m//wm-4, wm, -1] x [b, h, m//wm-4, r*wn, -1]
+            gathered_key[:, :, 1:-1])    # [b, h, m//wm-4, wm, -1] x [b, h, m//wm-4, r*wn, -1]
     #         ==> [b, h, m//wm-4, wm, r*wn]
     rand_band_product = tf.multiply(rand_band_product, 1.0 / np.sqrt(d))
     first_band_product = tf.einsum(
@@ -280,10 +182,8 @@ def bigbird_block_sparse_attention(
     )    # [b, h, m//wm-4, wm, -1] x [b, h, wn, -1] ==> [b, h, m//wm-4, wm, wn]
     last_band_product = tf.multiply(last_band_product, 1.0 / np.sqrt(d))
     inner_band_product += (1.0 - band_mask) * -10000.0
-    first_band_product += (1.0 -
-                                                 tf.expand_dims(to_mask[:, :, :, :wn], 3)) * -10000.0
-    last_band_product += (1.0 -
-                                                tf.expand_dims(to_mask[:, :, :, -wn:], 3)) * -10000.0
+    first_band_product += (1.0 - tf.expand_dims(to_mask[:, :, :, :wn], 3)) * -10000.0
+    last_band_product += (1.0 - tf.expand_dims(to_mask[:, :, :, -wn:], 3)) * -10000.0
     rand_band_product += (1.0 - rand_mask[:, :, 1:-1]) * -10000.0
     band_product = tf.concat([
             first_band_product, inner_band_product, rand_band_product,
@@ -291,13 +191,11 @@ def bigbird_block_sparse_attention(
     ], -1)    # [b, h, m//wm-4, wm, (5+r)*wn]
     attn_weights = tf.nn.softmax(band_product)    # [b, h, m//wm-4, wm, (5+r)*wn]
     context_layer = tf.einsum(
-            "BHLQK,BHLKD->BHLQD", attn_weights[:, :, :, :,
-                                                                                 wn:4 * wn], exp_blocked_value_matrix
+            "BHLQK,BHLKD->BHLQD", attn_weights[:, :, :, :, wn:4 * wn], exp_blocked_value_matrix
     )    # [b, h, m//wm-4, wm, 3*wn] x [b, h, m//wm-4, 3*wn, -1]
     #         ==> [b, h, m//wm-4, wm, -1]
     context_layer += tf.einsum(
-            "BHLQK,BHLKD->BHLQD", attn_weights[:, :, :, :,
-                                                                                 4 * wn:-wn], gathered_value[:, :, 1:-1]
+            "BHLQK,BHLKD->BHLQD", attn_weights[:, :, :, :, 4 * wn:-wn], gathered_value[:, :, 1:-1]
     )    # [b, h, m//wm-4, wm, r*wn] x [b, h, m//wm-4, r*wn, -1]
     #         ==> [b, h, m//wm-4, wm, -1]
     context_layer += tf.einsum(
@@ -305,8 +203,7 @@ def bigbird_block_sparse_attention(
             blocked_value_matrix[:, :, 0]
     )    # [b, h, m//wm-4, wm, wn] x [b, h, wn, -1] ==> [b, h, m//wm-4, wm, -1]
     context_layer += tf.einsum(
-            "BHLQK,BHKD->BHLQD", attn_weights[:, :, :, :,
-                                                                                -wn:], blocked_value_matrix[:, :, -1]
+            "BHLQK,BHKD->BHLQD", attn_weights[:, :, :, :, -wn:], blocked_value_matrix[:, :, -1]
     )    # [b, h, m//wm-4, wm, wn] x [b, h, wn, -1] ==> [b, h, m//wm-4, wm, -1]
 
     second_last_key_mat = tf.concat([
@@ -359,8 +256,6 @@ def bigbird_block_sparse_attention(
 
 
 class BigBirdMasks(tf.keras.layers.Layer):
-    """Creates bigbird attention masks."""
-
     def __init__(self, block_size, **kwargs):
         super().__init__(**kwargs)
         self._block_size = block_size
@@ -369,7 +264,6 @@ class BigBirdMasks(tf.keras.layers.Layer):
         encoder_shape = tf.shape(mask)
         mask = tf.cast(mask, inputs.dtype)
         batch_size, seq_length = encoder_shape[0], encoder_shape[1]
-        # reshape for blocking
         blocked_encoder_mask = tf.reshape(
                 mask, (batch_size, seq_length // self._block_size, self._block_size))
         encoder_from_mask = tf.reshape(mask, (batch_size, 1, seq_length, 1))
@@ -450,7 +344,7 @@ class BigBirdAttention(tf.keras.layers.MultiHeadAttention):
                 key = tf.concat([state, key], 1)
 
         query = self._query_dense(query)
-
+        
         key = self._key_dense(key)
 
         value = self._value_dense(value)
