@@ -342,6 +342,7 @@ class BigBirdAttention(tf.keras.layers.MultiHeadAttention):
         if state is not None and state.shape.ndims > 1:
                 value = tf.concat([state, value], 1)
                 key = tf.concat([state, key], 1)
+                query = tf.concat([state, key], 1)
 
         query = self._query_dense(query)
         
