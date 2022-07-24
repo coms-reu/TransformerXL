@@ -1,0 +1,23 @@
+{
+    "os": "Linux-5.4.0-121-generic-x86_64-with-glibc2.31",
+    "python": "3.10.4",
+    "heartbeatAt": "2022-07-24T15:37:32.289793",
+    "startedAt": "2022-07-24T15:37:31.162671",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_count": 2,
+    "cpu_count": 20,
+    "cuda": null,
+    "args": null,
+    "state": "running",
+    "program": "work/TransformerXL/STR_XL/Str_Xl_Relative_Mha.ipynb",
+    "root": "/home/jovyan/work/TransformerXL",
+    "git": {
+        "remote": "git@github.com:coms-reu/TransformerXL.git",
+        "commit": "2bf4e8c682be2309224662a33122af4e0cfecda0"
+    },
+    "email": "klg6z@hamilton04.cs.mtsu.edu",
+    "host": "hamilton01",
+    "username": "klg6z",
+    "executable": "/opt/conda/bin/python"
+}
