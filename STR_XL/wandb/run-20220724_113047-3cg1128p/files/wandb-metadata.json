@@ -1,0 +1,23 @@
+{
+    "os": "Linux-5.4.0-122-generic-x86_64-with-glibc2.31",
+    "python": "3.10.4",
+    "heartbeatAt": "2022-07-24T16:30:48.066041",
+    "startedAt": "2022-07-24T16:30:47.004588",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_count": 2,
+    "cpu_count": 20,
+    "cuda": null,
+    "args": null,
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "git@github.com:coms-reu/TransformerXL.git",
+        "commit": "8a941ff8b0723bc7d87c324caff15808d36944d4"
+    },
+    "email": "klg6z@hamilton04.cs.mtsu.edu",
+    "root": "/home/jovyan/work/TransformerXL",
+    "host": "hamilton02",
+    "username": "klg6z",
+    "executable": "/opt/conda/bin/python"
+}
